@@ -13,17 +13,29 @@ diffable file rather than an edit nobody can see.
 kernel or libc correct; it proves what was built, from which bytes, in what
 order, with what outcome. That distinction is load-bearing in this repository
 and it is not softened anywhere in these files. Verification lives next door
-in [`../t/`](../t/); provenance lives here.
+in [t-proof-engine](https://github.com/trestoncuzzort/t-proof-engine); provenance lives here.
 
-## Why it is in this repo
+## What it produced
 
-The repository root asks how much of a measured result is real. Its answer
-depends on a verifier, which depends on an interpreter, which depends on a
-libc, which depends on a compiler, and the receipts stop at the interpreter.
-tup is that descent continued: the same discipline applied to the ground the
-verdicts stand on. The paper's own findings (a verifier whose answer changed
-with its Python version; digests that differed by platform) are what make
-"control the substrate" a research position rather than a hobby.
+| | |
+|---|---|
+| Book pages built by the driver | **139** of Linux From Scratch r12.4 (arm64), one receipt each: duration, exit status, sha256 of its own log ([`receipts/BUILD-20260831T123738Z.md`](receipts/BUILD-20260831T123738Z.md)) |
+| Source tarballs | **96**, each hashed before use ([`receipts/SHA256-MANIFEST-20260831T123738Z.txt`](receipts/SHA256-MANIFEST-20260831T123738Z.txt)) |
+| Machine time | **2.40 h** of builds; one page failed and is listed by name (`ch08/78-man-db.sh`) |
+| Test suites | glibc, GCC and binutils run; the other **50** recorded as skipped *by name* |
+| Boot, witness 1 | arm64 under QEMU with UEFI firmware and the disk only (no `-kernel`, no `-initrd`): **BOOTED** ([`receipts/boot-witness-20260831T110851Z.txt`](receipts/boot-witness-20260831T110851Z.txt)) |
+| Boot, witness 2 | the *released* image, downloaded and reassembled on a different x86_64 machine under full emulation: **BOOTED**, `tup login:` 45 s after launch; it also caught a wrong whole-file checksum in the release's `SHA256SUMS` ([`receipts/boot-witness-dell-20260831T181531Z.txt`](receipts/boot-witness-dell-20260831T181531Z.txt)) |
+| Release | `tup-0.1-arm64.qcow2`, sha256 `5bb06ce1…2343536`, release [v0.1-witness](https://github.com/trestoncuzzort/dawnr/releases/tag/v0.1-witness); what is inside it is [`receipts/INVENTORY-RELEASE-0.1.txt`](receipts/INVENTORY-RELEASE-0.1.txt), taken from the shipped bytes |
+
+## Why it exists
+
+tup came out of [dawnr](https://github.com/trestoncuzzort/dawnr), a project that asks how much of a measured result is
+real. Its answers depend on a verifier ([t-proof-engine](https://github.com/trestoncuzzort/t-proof-engine)), which
+depends on an interpreter, which depends on a libc, which depends on a compiler, and the receipts stopped at the
+interpreter. tup continues that descent: the same discipline applied to the ground the verdicts stand on. The
+project's own findings (a verifier whose answer changed with its Python version; digests that differed by
+platform) are what make "control the substrate" a research position rather than a hobby. It was split out of
+dawnr with its history on 2026-10-08.
 
 ## Layout
 
@@ -75,18 +87,18 @@ The build happens inside a Lima VM (Ubuntu as disposable scaffolding; the LFS
 two-pass toolchain exists precisely to sever the result from its host):
 
 ```bash
-python3 tup/extract_book.py 5 6 7 8 9 10 11   # regenerate book/
+python3 extract_book.py 5 6 7 8 9 10 11   # regenerate book/
 # driver.sh runs per chapter inside the VM; chain*.sh sequence the legs
-python3 tup/bundle_receipts.py                # collect the evidence
-bash tup/boot_witness.sh                      # boot it alone, record the verdict
+python3 bundle_receipts.py                # collect the evidence
+bash boot_witness.sh                      # boot it alone, record the verdict
 ```
 
 The x86_64 leg runs on a Linux host from QEMU alone (no Lima, no sudo):
 
 ```bash
-python3 tup/extract_book.py --arch x86_64 5 6 7 8 9 10 11   # regenerate book-x86_64/
-python3 tup/check_overrides.py && python3 tup/check_placeholders.py
-bash tup/buildvm/build-x86_64.sh              # VM, chapters 2-11, receipts, witness, release
+python3 extract_book.py --arch x86_64 5 6 7 8 9 10 11   # regenerate book-x86_64/
+python3 check_overrides.py && python3 check_placeholders.py
+bash buildvm/build-x86_64.sh              # VM, chapters 2-11, receipts, witness, release
 ```
 
 ## Known findings from building it

@@ -1,0 +1,29 @@
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  # The build itself needs a VM and hours; these are the checks that keep the driver honest without one.
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: every override hooks a real page of the book it applies to
+        run: python check_overrides.py
+      - name: every page with a placeholder has an override
+        run: python check_placeholders.py
+      - name: every script parses
+        run: |
+          for f in $(git ls-files '*.sh'); do bash -n "$f" || exit 1; done
+          python -m py_compile $(git ls-files '*.py')
