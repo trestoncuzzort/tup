@@ -45,8 +45,8 @@ REMOTE_SRC = "/mnt/lfs/sources"
 
 def vm_read(path: str) -> str:
     p = subprocess.run(["limactl", "shell", VM, "--", "cat", path],
-                       capture_output=True, text=True)
-    return p.stdout if p.returncode == 0 else ""
+                       capture_output=True)
+    return p.stdout.decode("utf-8") if p.returncode == 0 else ""
 
 
 def sha256_text(s: str) -> str:
@@ -156,7 +156,9 @@ def main() -> int:
     def read(name: str, base: str = REMOTE_LOG) -> str:
         if args.local:
             p = Path(args.local) / name
-            return p.read_text(encoding="utf-8") if p.exists() else ""
+            # Evidence hashes name the input bytes, including their original
+            # newlines. Text-mode universal-newline conversion changes them.
+            return p.read_bytes().decode("utf-8") if p.exists() else ""
         return vm_read(f"{base}/{name}")
 
     receipts_raw = read("receipts.jsonl")
@@ -165,15 +167,15 @@ def main() -> int:
     if not args.local:
         ls = subprocess.run(["limactl", "shell", VM, "--", "sh", "-c",
                              f"cat {REMOTE_SRC}/SHA256-MANIFEST-*.txt"],
-                            capture_output=True, text=True)
-        manifest_raw = ls.stdout
+                            capture_output=True)
+        manifest_raw = ls.stdout.decode("utf-8")
     else:
         # the manifest lives beside the log dir on the build disk; the x86_64
         # orchestrator copies it into the log dir it hands over
         for d in (Path(args.local), Path(args.local).parent):
             found = sorted(d.glob("SHA256-MANIFEST-*.txt"))
             if found:
-                manifest_raw = "".join(f.read_text(encoding="utf-8") for f in found)
+                manifest_raw = "".join(f.read_bytes().decode("utf-8") for f in found)
                 break
     prov_note = read("PROVENANCE-NOTE-bootscripts.txt")
 
@@ -326,8 +328,8 @@ def main() -> int:
     w(fence)
 
     dest.write_text("\n".join(L) + "\n", encoding="utf-8")
-    (OUT / f"receipts-{stamp}.jsonl").write_text(receipts_raw, encoding="utf-8")
-    (OUT / f"SHA256-MANIFEST-{stamp}.txt").write_text(manifest_raw, encoding="utf-8")
+    (OUT / f"receipts-{stamp}.jsonl").write_bytes(receipts_raw.encode("utf-8"))
+    (OUT / f"SHA256-MANIFEST-{stamp}.txt").write_bytes(manifest_raw.encode("utf-8"))
     print(f"wrote {dest.relative_to(HERE.parent)}")
     print(f"  {len(built)} pages, {human(total)} of builds, {len(tarballs)} tarballs")
     return 0

@@ -95,12 +95,13 @@ tup_receipt_skip_tests() {
 }
 # Prints the sha256 of $1, or fails: a hash `sha256sum` did not produce is not
 # a hash this script may print. Its diagnostic goes to stderr rather than into
-# the digest, and an empty result counts as a failure however it arose.
+# the digest. Read on stdin to avoid the backslash marker sha256sum emits
+# when escaping a filename; the receipt holds only the 64 hexadecimal digits.
 tup_sha256() {
   local out
-  out=$(sha256sum "$1" 2>&1) || { echo "$out" >&2; return 1; }
+  out=$(sha256sum < "$1") || return 1
   out=${out%% *}
-  [ -n "$out" ] || return 1
+  [[ "$out" =~ ^[0-9a-fA-F]{64}$ ]] || { echo "invalid sha256 for $1" >&2; return 1; }
   printf '%s' "$out"
 }
 export -f tup_tests_enabled tup_receipt_skip_tests tup_json_str

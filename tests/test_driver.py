@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -56,6 +57,28 @@ class DriverTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue((self.lfs / "ran").exists(), result.stdout)
         self.assertEqual(json.loads(self.receipts.read_text())["exit"], 0)
+
+    def test_backslash_paths_do_not_change_receipted_digests(self):
+        renamed = self.root / "ch\\test"
+        self.chapter.rename(renamed)
+        self.chapter = renamed
+        self.page = self.chapter / self.page.name
+        result = self.run_driver()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        receipt = json.loads(self.receipts.read_text())
+        self.assertEqual(receipt["script_sha256"], hashlib.sha256(self.page.read_bytes()).hexdigest())
+        log = self.log / (self.chapter.name + "-01-probe.log")
+        self.assertEqual(receipt["log_sha256"], hashlib.sha256(log.read_bytes()).hexdigest())
+
+    def test_malformed_hash_output_stops_before_page_execution(self):
+        binaries = self.root / "bin"
+        binaries.mkdir()
+        fake = binaries / "sha256sum"
+        fake.write_text('#!/bin/bash\nprintf "not-a-digest  file\\n"\n')
+        fake.chmod(0o755)
+        with patch.dict(os.environ, {"PATH": str(binaries) + os.pathsep + os.environ["PATH"]}):
+            self.assert_refused(self.run_driver())
+        self.assertFalse((self.lfs / "ran").exists())
 
     def test_receipt_write_failure_does_not_complete_page(self):
         self.receipts.mkdir()
