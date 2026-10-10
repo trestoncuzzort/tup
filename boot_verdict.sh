@@ -1,7 +1,7 @@
 # boot_verdict.sh: the one definition of "tup booted", shared by both witnesses.
 #
 # SOURCED, never run: `. "$HERE/boot_verdict.sh"`. It sets two patterns and
-# defines four functions, and does nothing else.
+# defines five functions, and does nothing else.
 #
 # WHY THIS IS A FILE AND NOT A BLOCK IN EACH SCRIPT. "The witness banked BOOTED
 # when the machine did not boot" has now been found three times, in two files:
@@ -101,6 +101,21 @@ tup_saw_panic()   { grep -qE "$TUP_PANIC_RE"  "$1" 2>/dev/null; }
 tup_saw_prompt()  { grep -qE "$TUP_PROMPT_RE" "$1" 2>/dev/null; }
 tup_guest_alive() { kill -0 "$1" 2>/dev/null; }
 
+# Shell test errors are not false measurements. Validate before any integer
+# comparison: an invalid operand otherwise skips its rejection branch. Accept
+# nonnegative decimal counters representable by Bash's signed 64-bit test;
+# leading zeros are harmless. Compare the bound as text, before parsing it.
+tup_valid_counter() {
+  local LC_ALL=C value=$1 normalized
+  case "$value" in ''|*[!0-9]*) return 1 ;; esac
+  normalized=${value#"${value%%[!0]*}"}
+  normalized=${normalized:-0}
+  [ "${#normalized}" -lt 19 ] || {
+    [ "${#normalized}" -eq 19 ] &&
+      { [ "$normalized" = 9223372036854775807 ] || [[ "$normalized" < 9223372036854775807 ]]; }
+  }
+}
+
 # tup_boot_verdict <transcript> <guest-pid> <prompt-seen 0|1> \
 #                  <settle-seconds-watched> <settle-seconds-required> <budget>
 #
@@ -116,6 +131,21 @@ tup_boot_verdict() {
     return 1
   fi
   local log=$1 pid=$2 prompt_seen=$3 watched=$4 required=$5 budget=$6
+  local field
+  case "$prompt_seen" in
+    0|1) ;;
+    *) echo "INVALID MEASUREMENTS: prompt-seen must be 0 or 1"; return 1 ;;
+  esac
+  for field in watched required budget; do
+    if ! tup_valid_counter "${!field}"; then
+      echo "INVALID MEASUREMENTS: $field must be a nonnegative decimal integer at most 9223372036854775807"
+      return 1
+    fi
+  done
+  if ! tup_valid_counter "$pid" || [ "$pid" -eq 0 ]; then
+    echo "INVALID MEASUREMENTS: guest pid must be a positive decimal integer"
+    return 1
+  fi
   local alive=0
   # Read once, here, and used by every clause below. Two clauses reading the
   # process at two different instants could name two different verdicts for one
