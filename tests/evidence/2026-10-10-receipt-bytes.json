@@ -1,0 +1,16 @@
+{
+  "scope": "native and simulated receipt integrity controls; no VM or OS build",
+  "commit": "130a3ced439782186eb2630add323265396be6fa",
+  "working_tree_clean_before_and_after": true,
+  "tests": 27,
+  "failures": 0,
+  "errors": 0,
+  "command": "python3 -m unittest discover -s tests -v",
+  "source_sha256": {
+    "driver.sh": "ee38bd66c7c9f49d694d8fe3759b2b4965e0f99edea3c617e64e137602beca4d",
+    "bundle_receipts.py": "cc2f68c504735365b179395ba786902dfe589a47e770250d7206f9af2bea01a4",
+    "tests/test_driver.py": "a47c822cffbd64177f44afe4adffbef11f817798f47bd55d332c7e9bc2485df5",
+    "tests/test_bundle_receipts.py": "88a0141de89d6acaa65c5499b8ec67a0ae0150ae5f022c18a7cd09cbd083158b"
+  },
+  "log_sha256": "14b463affaa5266e97760ec8576243a4bcf77c6e9f338294fa8c7a9e55aa8af9"
+}

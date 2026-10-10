@@ -37,6 +37,7 @@ evidence as bytes, preserving original line endings. Parsing and report totals
 still use the decoded text. All 27 native/simulated tests pass, including retry
 reconciliation, test-policy reporting and the previous boot/release controls.
 
-Command: `python3 -m unittest discover -s tests -v`. Clean checkout confirmation
-remains pending. The VM transport test uses a local stand-in for limactl; no VM
-or distribution build was run.
+Command: `python3 -m unittest discover -s tests -v`. Clean checkout `130a3ce`
+repeated all 27 passing tests; hashes and command are recorded in
+`tests/evidence/2026-10-10-receipt-bytes.json`. The VM transport test uses a local
+stand-in for limactl; no VM or distribution build was run.
