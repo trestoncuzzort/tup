@@ -1,0 +1,21 @@
+{
+  "scope": "native helper/action-page checks and simulated release orchestration; no real VM boot",
+  "commit": "f878afc90c567633db4889415901090b6a4fa9b8",
+  "python": "3.14.7",
+  "command": "python3 -m unittest discover -s tests -v",
+  "tests": 22,
+  "failures": 0,
+  "errors": 0,
+  "working_tree_clean_before_and_after": true,
+  "shell_scripts_syntax_checked": 340,
+  "python_files_compiled": 8,
+  "source_sha256": {
+    "boot_verdict.sh": "5ef0583be3f9c49910495d2d96e78a60c93b810e176c1a80940790e7aeba6e2b",
+    "driver.sh": "21a840a15eff89026c990086927fea90bccbfaeaf79dfea339c3ea2025e4645a",
+    "release.sh": "86a47beebd3fa427470b629b3f2405387fcf3cef236fc08f003423e453ef2a4b",
+    "tests/test_boot_verdict.py": "ab6849e5617fbd71555c5627fc6761b3bff0c9a38eb324ac3b3bac00f5546861",
+    "tests/test_driver.py": "a058e3af8400ba40830f9c2da94e751b0f5e9895e075121b420a378882cd147f",
+    "tests/test_release.py": "60f13c189c8b2f137c1e0ad801c9ac17a57ac69c0487dd0a210048be68c23d17"
+  },
+  "log_sha256": "120c28890b006ecb3a9e78cac7c25f5eacb7f36aa923b30357508154a7fcddce"
+}

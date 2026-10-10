@@ -28,5 +28,7 @@ digest before using it. Hashing through stdin also avoids filename escapes in
 the digest. This applies to both master checks and a present inventory's hash.
 All seven release tests pass after repair, alongside the 15 existing native
 driver/boot tests (22 total). Command: `python3 -m unittest discover -s tests -v`.
-Clean checkout confirmation remains pending. These test doubles establish no
-real boot, filesystem isolation or release-image correctness.
+Clean checkout `f878afc` repeated all 22 passing native/simulated tests and syntax
+checked all 340 tracked shell scripts and eight Python files. The source hashes
+and command are in `tests/evidence/2026-10-10-audit.json`. These test doubles
+establish no real boot, filesystem isolation or release-image correctness.
