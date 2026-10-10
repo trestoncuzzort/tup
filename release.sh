@@ -46,6 +46,22 @@ QDIR="${TUP_QEMU:-$HOME/.local/opt/qemu-10.1.3}"
 QIMG=$(command -v qemu-img || echo "$QDIR/bin/qemu-img")
 SHA=$(command -v sha256sum >/dev/null && echo "sha256sum" || echo "shasum -a 256")
 
+# The status of `hash | cut` is cut's status. Two failed hashes used to
+# become two empty strings and satisfy the unchanged-master gate. Read on
+# stdin so filename escaping cannot become part of the digest either.
+tup_release_sha256() {
+  local output digest
+  output=$($SHA < "$1") || {
+    echo "cannot sha256 $1; refusing a release without its evidence" >&2
+    return 1; }
+  digest=${output%% *}
+  if [[ ! "$digest" =~ ^[0-9a-fA-F]{64}$ ]]; then
+    echo "invalid sha256 for $1; refusing a release without its evidence" >&2
+    return 1
+  fi
+  printf '%s' "$digest"
+}
+
 case "$ARCH" in
   arm64)
     DISK="${TUP_DISK:-$HOME/.lima/_disks/lfs/datadisk}"
@@ -102,7 +118,7 @@ fi
 echo "=== 2. convert (compressed qcow2 is the master)"
 "$QIMG" convert -f "$SRCFMT" -O qcow2 -c "$SRC" "$OUT/$NAME.qcow2"
 ls -lh "$OUT/$NAME.qcow2" | awk '{print "    qcow2:", $5}'
-MASTER_SHA=$($SHA "$OUT/$NAME.qcow2" | cut -d' ' -f1)
+MASTER_SHA=$(tup_release_sha256 "$OUT/$NAME.qcow2")
 echo "    sha256: $MASTER_SHA  (this is the number step 5 must still find)"
 
 echo "=== 3. witness the qcow2 before anything else happens (accel $ACCEL)"
@@ -198,7 +214,7 @@ echo "=== 5. hashes and the release note"
 # The master must still be the file step 2 built. If anything wrote to it
 # between then and now, an overlay that did not isolate or a stray qemu, the
 # release is not the thing that was witnessed, and it does not go out.
-NOW_SHA=$($SHA "$OUT/$NAME.qcow2" | cut -d' ' -f1)
+NOW_SHA=$(tup_release_sha256 "$OUT/$NAME.qcow2")
 [ "$NOW_SHA" = "$MASTER_SHA" ] || {
   echo "!!! the master changed after conversion: $MASTER_SHA -> $NOW_SHA" >&2
   echo "    something wrote to the image that was witnessed; NOT shipping" >&2
@@ -215,7 +231,7 @@ case "$ARCH" in
   arm64)  INV=$(ls -t "$HERE/receipts"/INVENTORY-*.txt 2>/dev/null | grep -v '/INVENTORY-x86_64-' | head -1 || true) ;;
   x86_64) INV=$(ls -t "$HERE/receipts"/INVENTORY-x86_64-*.txt 2>/dev/null | head -1 || true) ;;
 esac
-INV_SHA=$([ -n "$INV" ] && $SHA "$INV" | cut -d' ' -f1 || echo none)
+if [ -n "$INV" ]; then INV_SHA=$(tup_release_sha256 "$INV"); else INV_SHA=none; fi
 INV_NAME=$([ -n "$INV" ] && basename "$INV" || echo "none yet for this arch")
 LAYERS=$(ls "$HERE/receipts"/LAYER-*.txt "$HERE/receipts"/LAYER-*.md 2>/dev/null \
          | xargs -n1 basename 2>/dev/null | tr '\n' ' ' || true)

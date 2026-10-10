@@ -1,0 +1,28 @@
+{
+  "task": "boot_accept_legacy",
+  "input": {
+    "panic": false,
+    "prompt": true,
+    "seen": true,
+    "alive": true,
+    "watched": 9223372036854775808,
+    "required": 0,
+    "budget": 300
+  },
+  "repeats": 3,
+  "outcomes": [
+    {
+      "dafny": "refuted",
+      "lean": "refuted"
+    },
+    {
+      "dafny": "refuted",
+      "lean": "refuted"
+    },
+    {
+      "dafny": "refuted",
+      "lean": "refuted"
+    }
+  ],
+  "scope": "integer model refutation; not a VM boot"
+}

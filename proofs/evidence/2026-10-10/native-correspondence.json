@@ -1,0 +1,12 @@
+{
+  "scope": "finite correspondence for numeric inputs; no VM boot",
+  "original_commit": "64e00b31ca489b9fe527ec0deae4ef07d860f5d2",
+  "original_sha256": "579d3768e784be7246e5b70dcfc480a37a1a4c3bec11c3e04253714352dc980f",
+  "fixed_sha256": "5ef0583be3f9c49910495d2d96e78a60c93b810e176c1a80940790e7aeba6e2b",
+  "cases_per_side": 1936,
+  "passed": {
+    "before": 1936,
+    "after": 1936
+  },
+  "disagreements": []
+}

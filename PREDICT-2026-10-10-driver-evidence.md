@@ -36,4 +36,7 @@ append succeeds, and a failed state append stops the chapter. The eight driver
 tests and seven native boot-gate tests pass after the repair. CI now runs them.
 Commands: `python3 -m unittest discover -s tests -p test_driver.py -v` for the
 paired driver measurement, and `python3 -m unittest discover -s tests -v` for the
-combined regression. Clean checkout and structural checks remain pending.
+combined regression. Clean checkout `5936dc6` repeated all 15 passing tests;
+override checks passed 46/46 and placeholder checks 12/12. All 340 tracked shell
+scripts passed `bash -n`; all seven tracked Python files compiled. Those are
+syntax/structural checks, not execution of the distribution build.

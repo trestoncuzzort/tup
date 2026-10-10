@@ -1,0 +1,26 @@
+{
+  "scope": "model proofs, refutations and finite native correspondence; no new VM boot",
+  "tup_commit": "5936dc6ac47e82a950c677ba97cc10792f1ac3f0",
+  "engine_commit": "f3cb6a5cca5bd9cc83ddfd3a9855b735e4b4b682",
+  "working_trees_clean_before_and_after": true,
+  "repeats_per_proof_side": 3,
+  "kernels": {
+    "dafny": "4.11.0+fcb2042d6d043a2634f0854338c08feeaaaf4ae2",
+    "lean": "Lean (version 4.33.1, x86_64-unknown-linux-gnu, commit 819816b2e0a3bf405af45ae5c7af2491d8f5bee6, Release)"
+  },
+  "source_sha256": {
+    "boot_verdict.sh": "5ef0583be3f9c49910495d2d96e78a60c93b810e176c1a80940790e7aeba6e2b",
+    "proofs/boot_accept.t": "599fb0809515a740cee8d466ba240bb02e4704ad83119d6a38384ae9c61ab743",
+    "proofs/findings/boot_accept_legacy.t": "b64459e125b88fd93062d5e8c035ee81977e848e06d32df544d64227cdbc82bf",
+    "proofs/check_boot_gate.py": "32d5498016ae4ee3180f9c33cd75f62d59d3f4207999653571c7ce56f1612fb3"
+  },
+  "artifact_sha256": {
+    "boot-agreement.md": "e4b9cda1c4cb7f0eef33d8ad8ff94f544ce306823be0c04eec43f770c26bc3be",
+    "boot_accept.dfy": "3d9ebecc6b86f3e983c825a9bdc5fd069ad59ea738e245790df685625b4eb1bb",
+    "boot_accept.lean": "fc4202123ff5db8d016e5cb127f32917885de9d3c1f5ec91a052d94b39b07580",
+    "boot_accept_twin.dfy": "7cf25ba05a0bb594ce19595bfcffff949d28c59e528afed401f82117a081db33",
+    "boot_accept_twin.lean": "1bc02df84c2bc209eb49b5aa5c887d6e2403a9b3453d3a64821f420e81d6e1a0",
+    "legacy-refutation.json": "a5221e4d33f5643e19a4d223da58a82a07f34a50d53b63265f03fb0ddbfdaecf",
+    "native-correspondence.json": "56ce1af5926ede809cba32a41541b828accb5b0725d4296f3d23ecbe9b6591bf"
+  }
+}
