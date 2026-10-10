@@ -23,6 +23,8 @@ jobs:
         run: python check_overrides.py
       - name: every page with a placeholder has an override
         run: python check_placeholders.py
+      - name: native driver and boot-gate regressions
+        run: python -m unittest discover -s tests -v
       - name: every script parses
         run: |
           for f in $(git ls-files '*.sh'); do bash -n "$f" || exit 1; done

@@ -54,8 +54,9 @@ esac
 export TUP_ARCH
 CHDIR=$1
 CH=$(basename "$CHDIR")
-mkdir -p "$LOG"
-touch "$STATE"
+mkdir -p "$LOG" || { echo "!!! cannot create the build log directory $LOG"; exit 1; }
+touch "$STATE" && [ -f "$STATE" ] && [ -r "$STATE" ] || {
+  echo "!!! cannot open the completion state $STATE as a readable file"; exit 1; }
 
 tup_tests_enabled() {
   for t in $TUP_TESTS; do case "$1" in *"$t"*) return 0;; esac; done
@@ -111,9 +112,13 @@ export RECEIPTS
 # 2026-08-31: chapter 7 failed with "07-gettext.sh: command not found" x6.
 [ -r "$CHDIR/ORDER" ] || { echo "!!! $CH: no ORDER file at $CHDIR/ORDER, refusing to call an empty run complete"; exit 1; }
 [ -s "$CHDIR/ORDER" ] || { echo "!!! $CH: ORDER is empty, refusing to call an empty run complete"; exit 1; }
-while read -r script <&3; do
+while IFS= read -r script <&3 || [ -n "$script" ]; do
   id="$CH/$script"
-  grep -qxF "$id" "$STATE" && continue
+  if grep -qxF "$id" "$STATE"; then
+    continue
+  elif [ "$?" -ne 1 ]; then
+    echo "!!! $id: cannot read the completion state $STATE"; exit 1
+  fi
   page="${script%.sh}"
   src="$CHDIR/$script"
   # Chapter-qualified first: glibc names a page in BOTH chapter 5 and
@@ -281,13 +286,18 @@ while read -r script <&3; do
   # Both were hashed above, before the page could touch either. These keys are
   # ADDED, never renamed: a reader of the old five still parses.
   ov_json=null;  [ -n "$ov" ]  && ov_json=$(tup_json_str "$ov")
-  echo "{\"ts\":$(tup_json_str "$(date -u +%FT%TZ)"),\"page\":$(tup_json_str "$id"),\"package\":$(tup_json_str "${pkg:-null}"),\"seconds\":$secs,\"exit\":$rc,\"log_sha256\":$(tup_json_str "$lhash"),\"override\":$ov_json,\"script_sha256\":$(tup_json_str "$shash"),\"tarball_sha256\":$tb_json}" >> "$RECEIPTS"
+  echo "{\"ts\":$(tup_json_str "$(date -u +%FT%TZ)"),\"page\":$(tup_json_str "$id"),\"package\":$(tup_json_str "${pkg:-null}"),\"seconds\":$secs,\"exit\":$rc,\"log_sha256\":$(tup_json_str "$lhash"),\"override\":$ov_json,\"script_sha256\":$(tup_json_str "$shash"),\"tarball_sha256\":$tb_json}" >> "$RECEIPTS" || {
+    echo "!!! $id: cannot append its receipt to $RECEIPTS (the page itself exited $rc)"
+    echo "    refusing to mark the page complete without its receipt."
+    exit 1; }
   if [ $rc -ne 0 ]; then
     echo "!!! $id FAILED (exit $rc, ${secs}s), last lines of $plog:"
     tail -15 "$plog"
     exit 1
   fi
-  echo "$id" >> "$STATE"
+  echo "$id" >> "$STATE" || {
+    echo "!!! $id: receipt saved, but cannot append its completion state to $STATE"
+    exit 1; }
   echo "    ok in ${secs}s"
 done 3< "$CHDIR/ORDER"
 echo "=== $CH complete"
